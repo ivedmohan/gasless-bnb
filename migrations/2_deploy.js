@@ -7,20 +7,26 @@ module.exports = async function (deployer, network, accounts) {
     return;
   }
 
-  // Deploy GaslessForwarder only if no address is provided
-  await deployer.deploy(GaslessForwarder);
+  // Deploy GaslessForwarder with empty constructor arguments
+  await deployer.deploy(GaslessForwarder, [], []); // Pass empty arrays for initialTokens and initialTargets
   const forwarder = await GaslessForwarder.deployed();
   
   console.log('GaslessForwarder deployed at:', forwarder.address);
-  
-  // If you want to add initial supported tokens after deployment
+
+  // Add supported tokens and targets after deployment
   if (network === 'bsc_testnet') {
-    const USDT = '0xA2C7CaEf4aA9a3da0eaEd89C70Efff1b8818A156';
-    const USDC = '0xd9BfD73FE6B7481fF056Bf31239c2c4F019c0542';
-    
-    await forwarder.addSupportedToken(USDT);
-    await forwarder.addSupportedToken(USDC);
-    
+    const USDT = '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd';
+    const USDC = '0x64544969ed7EBf5f083679233325356EbE738930';
+
+    // Add supported tokens (for fees)
+    await forwarder.addSupportedToken(USDT, { from: accounts[0] });
+    await forwarder.addSupportedToken(USDC, { from: accounts[0] });
+
+    // Add allowed targets (for meta-transaction calls)
+    await forwarder.addAllowedTarget(USDT, { from: accounts[0] });
+    await forwarder.addAllowedTarget(USDC, { from: accounts[0] });
+
     console.log('Added supported tokens:', { USDT, USDC });
+    console.log('Added allowed targets:', { USDT, USDC });
   }
 };
